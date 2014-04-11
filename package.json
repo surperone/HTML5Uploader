@@ -1,0 +1,12 @@
+{
+	"name": "HTML5Uploader",
+	"version": "1.0.0",
+	"main": "html5Uploader.js",
+	"devDependencies": {
+		"grunt": "~0.4.1",
+		"grunt-contrib-uglify": "~0.2.0"
+	},
+	"peerDependencies": {
+		"grunt": "~0.4.1"
+	}
+}
