@@ -12,6 +12,6 @@ module.exports = function (grunt) {
 
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 
-	grunt.registerTask('default', ['html5Uploader']);
+	grunt.registerTask('default', ['uglify:html5Uploader']);
 
 };
