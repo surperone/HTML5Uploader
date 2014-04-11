@@ -4,6 +4,7 @@
 	<meta charset="UTF-8">
 	<script type="text/javascript" src="/jquery.min.js"></script>
 	<script type="text/javascript" src="/HTML5Uploader.js"></script>
+	<script type="text/javascript" src="/makeThumb.js"></script>
 	<title>HTML5Uploader.js</title>
 </head>
 <body>
@@ -24,6 +25,22 @@ $token = $putPolicy->Token(null);
 		trigger: '#file',
 		name: 'file',
 		action: 'http://up.qiniu.com',
+		preprocess: function(files, success, error) {
+			makeThumb(files[0], {
+				fill: true,
+				background: '#fff',
+				type: 'image/jpeg',
+				size: 'cover',
+				stretch: true,
+				width: 300,
+				height: 300,
+				success: function(dataURI) {
+					var blob = dataURItoBlob(dataURI);
+					success([blob]);
+				},
+				error: error
+			});
+		},
 		data: function() {
 			return {
 				token: '<?= $token; ?>',
