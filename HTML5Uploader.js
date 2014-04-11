@@ -11,13 +11,12 @@ var Uploader = (function() {
 			options = {trigger: options};
 		}
 		options || (options = {});
-		//禁用多选文件
-		options.multiple = false;
 		var settings = {
 			trigger: null,
 			name: null,
 			action: null,
 			data: null,
+			multiple: null,
 			change: null,
 			error: null,
 			success: null,
@@ -31,8 +30,10 @@ var Uploader = (function() {
 		settings.action = settings.action || $trigger.data('action') || location.href;
 		settings.name = settings.name || $trigger.attr('name') || $trigger.data('name') || 'file';
 		settings.data = settings.data || parse($trigger.data('data'));
-		settings.accept = settings.accept || $trigger.data('accept');
-		settings.success = settings.success || $trigger.data('success');
+		if (settings.multiple == null) {
+			settings.multiple = $trigger.prop('multiple');
+		}
+
 		this.settings = settings;
 
 		this.setup();
@@ -123,8 +124,8 @@ var Uploader = (function() {
 		}
 
 		//回调
-		var success = this.settings.success || $.noop;
-		var error = this.settings.error || $.noop;
+		var success = this.settings.success || noop;
+		var error = this.settings.error || noop;
 		//执行请求
 		$.ajax({
 			url: this.settings.action,
@@ -132,7 +133,6 @@ var Uploader = (function() {
 			dataType: 'json',
 			processData: false,
 			contentType: false,
-			multiple: false,
 			data: form,
 			xhr: optionXhr,
 			context: this,
@@ -191,6 +191,10 @@ var Uploader = (function() {
 	function isString(val) {
 		return Object.prototype.toString.call(val) === '[object String]';
 	}
+
+	function noop() {
+
+	};
 
 	function parse(str) {
 		if (!str) {

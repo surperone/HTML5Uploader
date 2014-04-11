@@ -4,7 +4,7 @@ module.exports = function (grunt) {
 	grunt.initConfig({
 		uglify: {
 			html5Uploader: {
-				src: 'html5Uploader.js',
+				src: ['html5Uploader.js', 'makeThumb.js'],
 				dest: 'html5Uploader.min.js'
 			}
 		}
