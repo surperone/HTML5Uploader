@@ -25,7 +25,7 @@ $token = $putPolicy->Token(null);
 		trigger: '#file',
 		name: 'file',
 		action: 'http://up.qiniu.com',
-		preprocess: function(files, success, error) {
+		preprocess: function(files, next) {
 			makeThumb(files[0], {
 				fill: true,
 				background: '#fff',
@@ -36,9 +36,11 @@ $token = $putPolicy->Token(null);
 				height: 300,
 				success: function(dataURI) {
 					var blob = dataURItoBlob(dataURI);
-					success([blob]);
+					next([blob]);
 				},
-				error: error
+				error: function() {
+					next(files);
+				}
 			});
 		},
 		data: function() {
