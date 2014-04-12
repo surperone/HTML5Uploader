@@ -1179,7 +1179,7 @@ var makeThumb = (function() {
 		fr.onload = function(fEvt) { // onload success
 			var target = fEvt.target;
 			var result = target.result;
-			result = result.replace('data:base64', 'data:image/jpeg,base64');
+//			result = result.replace('data:base64', 'data:image/jpeg,base64');
 			// load img
 			image = new Image();
 			var exif;

@@ -40,11 +40,11 @@ $token = $putPolicy->Token(null);
 				success: function(dataURI) {
 					alert(333);
 					var blob = dataURItoBlob(dataURI);
-					next([blob]);
+//					next([blob]);
 				},
 				error: function(error) {
 					alert(error);
-					next(files);
+//					next(files);
 				}
 			});
 		},
