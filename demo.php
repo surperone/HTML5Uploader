@@ -56,9 +56,13 @@ $token = $putPolicy->Token(null);
 			$('#progress span').text(rate+'%');
 		},
 		success: function(data) {
+			alert(222);
 			var url = 'http://atuploadtest.qiniudn.com/' + data.key;
 			$('#url').val(url);
 			$('#img').html('<img style="max-width: 100%;" src="'+url+'" />');
+		},
+		error: function() {
+			alert(333);
 		}
 	});
 </script>
