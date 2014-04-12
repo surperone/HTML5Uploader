@@ -1179,7 +1179,6 @@ var makeThumb = (function() {
 		fr.onload = function(fEvt) { // onload success
 			var target = fEvt.target;
 			var result = target.result;
-//			result = result.replace('data:base64', 'data:image/jpeg,base64');
 			// load img
 			image = new Image();
 			var exif;
@@ -1207,7 +1206,9 @@ var makeThumb = (function() {
 			}
 			// console.log(exif);
 			// alert(file.name +': '+ exif.Orientation);
-			alert(result);
+			alert(33)
+			result = result.replace('data:base64', 'data:image/jpeg;base64');
+//			alert(result);
 			image.src = result;
 		};
 
