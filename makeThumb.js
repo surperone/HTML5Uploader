@@ -1207,6 +1207,7 @@ var makeThumb = (function() {
 			}
 			// console.log(exif);
 			// alert(file.name +': '+ exif.Orientation);
+			alert(result);
 			image.src = result;
 		};
 
