@@ -38,10 +38,12 @@ $token = $putPolicy->Token(null);
 				width: 300,
 				height: 300,
 				success: function(dataURI) {
+					alert(333);
 					var blob = dataURItoBlob(dataURI);
 					next([blob]);
 				},
 				error: function() {
+					alert(444);
 					next(files);
 				}
 			});
