@@ -1208,7 +1208,7 @@ var makeThumb = (function() {
 			// alert(file.name +': '+ exif.Orientation);
 			alert(33)
 			result = result.replace('data:base64', 'data:image/jpeg;base64');
-//			alert(result);
+			alert(result);
 			image.src = result;
 		};
 
