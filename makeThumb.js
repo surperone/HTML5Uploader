@@ -1206,8 +1206,13 @@ var makeThumb = (function() {
 			}
 			// console.log(exif);
 			// alert(file.name +': '+ exif.Orientation);
-			alert(33)
-			result = result.replace('data:base64', 'data:image/jpeg;base64');
+			alert(33);
+			try {
+				result = result.replace('data:base64', 'data:image/jpeg;base64');
+			}
+			catch (e) {
+				alert(222)
+			}
 			alert(result);
 			image.src = result;
 		};
