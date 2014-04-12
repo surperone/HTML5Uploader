@@ -1246,7 +1246,7 @@ function dataURItoBlob(dataURI) {
 	var byteString = atob(dataURI.split(',')[1]);
 
 	// separate out the mime component
-	var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+	var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
 
 	// write the bytes of the string to an ArrayBuffer
 	var ab = new ArrayBuffer(byteString.length);
@@ -1255,15 +1255,19 @@ function dataURItoBlob(dataURI) {
 		ia[i] = byteString.charCodeAt(i);
 	}
 
+	alert(mimeString);
+
 	try {
-		var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder;
-		if (BlobBuilder) {
+		if (window.Blob) {
+			alert(666);
+			return new Blob([ab], {type: mimeString});
+		}
+		else {
+			alert(55)
+			var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder;
 			var bb = new BlobBuilder();
 			bb.append(ab);
 			return bb.getBlob(mimeString);
-		}
-		else {
-			return new Blob([ab], {type: "image/jpeg" });
 		}
 	}
 	catch (e) {
