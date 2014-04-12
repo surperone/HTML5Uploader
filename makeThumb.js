@@ -1206,9 +1206,9 @@ var makeThumb = (function() {
 			}
 			// console.log(exif);
 			// alert(file.name +': '+ exif.Orientation);
-			alert(33);
 			try {
-				result = result.replace('data:base64', 'data:image/jpeg;base64');
+				alert(file.type)
+//				result = result.replace('data:base64', 'data:image/jpeg;base64');
 			}
 			catch (e) {
 				alert(222);
