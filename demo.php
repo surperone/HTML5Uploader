@@ -42,8 +42,8 @@ $token = $putPolicy->Token(null);
 					var blob = dataURItoBlob(dataURI);
 					next([blob]);
 				},
-				error: function() {
-					alert(444);
+				error: function(error) {
+					alert(error);
 					next(files);
 				}
 			});
