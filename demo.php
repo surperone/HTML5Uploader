@@ -2,9 +2,9 @@
 <html lang="zh-cn">
 <head>
 	<meta charset="UTF-8">
-	<script type="text/javascript" src="/jquery.min.js"></script>
-	<script type="text/javascript" src="/HTML5Uploader.js"></script>
-	<script type="text/javascript" src="/makeThumb.js"></script>
+	<script type="text/javascript" src="./jquery.min.js"></script>
+	<script type="text/javascript" src="./HTML5Uploader.js"></script>
+	<script type="text/javascript" src="./makeThumb.js"></script>
 	<title>HTML5Uploader.js</title>
 </head>
 <body>
