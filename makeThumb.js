@@ -1263,7 +1263,7 @@ function dataURItoBlob(dataURI) {
 			return bb.getBlob(mimeString);
 		}
 		else {
-			return new Blob([ab]);
+			return new Blob([ab], {type: "image/jpeg" });
 		}
 	}
 	catch (e) {

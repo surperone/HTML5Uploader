@@ -67,13 +67,9 @@ var Uploader = (function() {
 		}
 		else if (this.settings.preprocess) {
 			var self = this;
-			var success = function(files) {
+			this.settings.preprocess.call(this, self._files, function(files) {
 				self._upload(files);
-			};
-			var error = function() {
-				self._upload(self._files);
-			};
-			this.settings.preprocess.call(this, self._files, success, error);
+			});
 		}
 		else {
 			this._upload(this._files);

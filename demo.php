@@ -8,7 +8,6 @@
 	<title>HTML5Uploader.js</title>
 </head>
 <body>
-<input type="file" name="file" id="file" />
 <?php
 require_once("./qiniu/http.php");
 require_once("./qiniu/io.php");
@@ -20,10 +19,14 @@ Qiniu_setKeys($accessKey, $secretKey);
 $putPolicy = new Qiniu_RS_PutPolicy('atuploadtest');
 $token = $putPolicy->Token(null);
 ?>
+<input type="file" name="file" id="file" />
+<input type="hidden" name="url" id="url" />
+<div id="progress">进度：<span></span></div>
+<div id="img"></div>
+
 <script type="text/javascript">
 	var uploader = new Uploader({
 		trigger: '#file',
-		name: 'file',
 		action: 'http://up.qiniu.com',
 		preprocess: function(files, next) {
 			makeThumb(files[0], {
@@ -49,8 +52,13 @@ $token = $putPolicy->Token(null);
 				key: 'demo/' + Date.now()
 			};
 		},
+		progress: function(e, now, total, rate) {
+			$('#progress span').text(rate+'%');
+		},
 		success: function(data) {
-			
+			var url = 'http://atuploadtest.qiniudn.com/' + data.key;
+			$('#url').val(url);
+			$('#img').html('<img style="max-width: 100%;" src="'+url+'" />');
 		}
 	});
 </script>
