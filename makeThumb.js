@@ -1206,6 +1206,7 @@ var makeThumb = (function() {
 			}
 			// console.log(exif);
 			// alert(file.name +': '+ exif.Orientation);
+			alert(result);
 			image.src = result;
 		};
 
@@ -1255,15 +1256,11 @@ function dataURItoBlob(dataURI) {
 		ia[i] = byteString.charCodeAt(i);
 	}
 
-	alert(mimeString);
-
 	try {
 		if (window.Blob) {
-			alert(666);
 			return new Blob([ab], {type: mimeString});
 		}
 		else {
-			alert(55)
 			var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder;
 			var bb = new BlobBuilder();
 			bb.append(ab);
