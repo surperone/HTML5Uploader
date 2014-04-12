@@ -39,11 +39,12 @@ $token = $putPolicy->Token(null);
 				height: 300,
 				success: function(dataURI) {
 					var blob = dataURItoBlob(dataURI);
-//					next([blob]);
+					alert(222)
+					next([blob]);
 				},
 				error: function(error) {
 					alert(error);
-//					next(files);
+					next(files);
 				}
 			});
 		},
