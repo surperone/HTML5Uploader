@@ -1204,16 +1204,9 @@ var makeThumb = (function() {
 					delete exif.UserComment;
 				}
 			}
+			result = result.replace('data:base64', 'data:image/jpeg;base64');
 			// console.log(exif);
 			// alert(file.name +': '+ exif.Orientation);
-			try {
-				alert(file.type)
-//				result = result.replace('data:base64', 'data:image/jpeg;base64');
-			}
-			catch (e) {
-				alert(222);
-			}
-			alert(result);
 			image.src = result;
 		};
 

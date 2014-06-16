@@ -17,33 +17,34 @@ $accessKey = '_j1zpW84suEITz3sWTmXBZSXfWf33UJ4Wb2vUepP';
 $secretKey = 'tSwQjgPwNU9vk5oCgXGXrvFbyz1E0Vljbe3wkcz4';
 Qiniu_setKeys($accessKey, $secretKey);
 $putPolicy = new Qiniu_RS_PutPolicy('atuploadtest');
+$putPolicy->Expires = 60 * 30;
+$putPolicy->SaveKey = 'test/$(etag)';
+$putPolicy->MimeLimit = 'image/*';
 $token = $putPolicy->Token(null);
 ?>
-<input type="file" name="file" id="file" />
-<input type="hidden" name="url" id="url" />
+
+<input type="file" name="file" id="file" accept="image/*" />
+<input type="hidden" name="url" id="url" accept="image/*" multiple />
+
 <div id="progress">进度：<span></span></div>
 <div id="img"></div>
-
 <script type="text/javascript">
 	var uploader = new Uploader({
 		trigger: '#file',
 		action: 'http://up.qiniu.com',
-		data: function() {
-			return {
-				token: '<?= $token; ?>',
-				key: 'demo/' + Date.now()
-			};
+		data: {
+			token: '<?= $token; ?>'
 		},
 		progress: function(e, now, total, rate) {
 			$('#progress span').text(rate+'%');
 		},
 		success: function(data) {
-			var url = 'http://atuploadtest.qiniudn.com/' + data.key;
+			var url = 'http://atuploadtest.qiniudn.com/'+data.key;
 			$('#url').val(url);
 			$('#img').html('<img style="max-width: 100%;" src="'+url+'" />');
 		},
 		error: function() {
-			alert(333);
+			console.dir(arguments);
 		}
 	});
 </script>
