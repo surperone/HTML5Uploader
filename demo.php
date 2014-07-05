@@ -13,10 +13,10 @@ require_once("./qiniu/http.php");
 require_once("./qiniu/io.php");
 require_once("./qiniu/rs.php");
 
-$accessKey = '_j1zpW84suEITz3sWTmXBZSXfWf33UJ4Wb2vUepP';
-$secretKey = 'tSwQjgPwNU9vk5oCgXGXrvFbyz1E0Vljbe3wkcz4';
+$accessKey = 'jZpEEbK-tElCcE5Z7ANp-IaSSljrsq5AklVV3OhS';
+$secretKey = 'jFB_4zvsHS7_mAglI511QzD6FlN0AQ25qodI1V-o';
 Qiniu_setKeys($accessKey, $secretKey);
-$putPolicy = new Qiniu_RS_PutPolicy('atuploadtest');
+$putPolicy = new Qiniu_RS_PutPolicy('pbwci');
 $putPolicy->Expires = 60 * 30;
 $putPolicy->SaveKey = 'test/$(etag)';
 $putPolicy->MimeLimit = 'image/*';
@@ -39,7 +39,7 @@ $token = $putPolicy->Token(null);
 			$('#progress span').text(rate+'%');
 		},
 		success: function(data) {
-			var url = 'http://atuploadtest.qiniudn.com/'+data.key;
+			var url = 'http://pbwci.qiniudn.com/'+data.key;
 			$('#url').val(url);
 			$('#img').html('<img style="max-width: 100%;" src="'+url+'" />');
 		},

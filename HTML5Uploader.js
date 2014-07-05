@@ -85,7 +85,6 @@ var Uploader = (function() {
 		params = $.isFunction(params) ? params.call(this, files) : params;
 		$.each(params || {}, function(name, value) {
 			form.append(name, value);
-
 		});
 		if (this.settings.multiple) {
 			$.each(files, function(i, file) {
@@ -112,7 +111,7 @@ var Uploader = (function() {
 						if (event.lengthComputable) {
 							percent = Math.ceil(position/total*100);
 						}
-						self.settings.progress.call(self, event, position, total, percent, files);
+						self.settings.progress.call(self, event, percent, position, total, files);
 					}, false);
 				}
 				return xhr;
