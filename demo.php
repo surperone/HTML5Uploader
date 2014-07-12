@@ -38,7 +38,6 @@ $token = $putPolicy->Token(null);
 		},
 		change: function() {
 			this.submit();
-			this.abort();
 		},
 		progress: function(e, rate) {
 			$('#progress span').text(rate+'%');
@@ -48,8 +47,9 @@ $token = $putPolicy->Token(null);
 			$('#url').val(url);
 			$('#img').html('<img style="max-width: 100%;" src="'+url+'" />');
 		},
+		complete: function() {
+		},
 		error: function() {
-			console.dir(arguments);
 		}
 	});
 </script>
