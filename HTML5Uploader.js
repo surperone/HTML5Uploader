@@ -7,6 +7,7 @@ var Uploader = (function() {
 		if (!window.FormData) {
 			throw new Error('浏览器不支持');
 		}
+
 		if (isString(options)) {
 			options = {trigger: options};
 		}
@@ -21,7 +22,8 @@ var Uploader = (function() {
 			error: null,
 			success: null,
 			progress: null,
-			preprocess: null
+			preprocess: null,
+			complete: null
 		};
 		if (options) {
 			$.extend(settings, options);
@@ -96,43 +98,63 @@ var Uploader = (function() {
 			form.append(this.settings.name, files[0]);
 		}
 
-		//进度
-		var optionXhr;
-		if (self.settings.progress) {
-			// fix the progress target file
-			optionXhr = function() {
-				var xhr = $.ajaxSettings.xhr();
-				if (xhr.upload) {
-					xhr.upload.addEventListener('progress', function(event) {
-						var percent = 0;
-						var position = event.loaded || event.position;
-						/*event.position is deprecated*/
-						var total = event.total;
-						if (event.lengthComputable) {
-							percent = Math.ceil(position/total*100);
-						}
-						self.settings.progress.call(self, event, percent, position, total, files);
-					}, false);
-				}
-				return xhr;
-			};
-		}
-
 		//回调
-		var success = this.settings.success || noop;
-		var error = this.settings.error || noop;
+		var success = this.settings.success || function() {};
+		var error = this.settings.error || function() {};
+		var complete = this.settings.complete || function() {};
+		var progress = this.settings.progress || function() {};
+
+		//进度
+		var powerXhr = function() {
+			var xhr = new XMLHttpRequest();
+			//不支持xhr.upload的上传进度事件
+			var ua = navigator.userAgent.toLowerCase();
+			var isWechat = typeof WeixinJSBridge != 'undefined' || ua.indexOf('micromessenger') != -1;
+			var isIos = ua.indexOf('ios') != -1 || ua.indexOf('iphone') != -1 || ua.indexOf('ipad') != -1;
+			var support = xhr.upload && 'onprogress' in xhr.upload && (!isWechat || isIos);
+
+			var onProgress = function(event) {
+				var percent = 0;
+				var position = event.loaded || event.position || 0;
+				/*event.position is deprecated*/
+				var total = event.total;
+				if (event.lengthComputable) {
+					percent = Math.ceil(position/total*100);
+				}
+				progress.call(self, event, percent, position, total, files);
+			};
+
+			if (!support) {
+				xhr.upload.addEventListener('progress', onProgress, false);
+			}
+			else {
+				xhr.addEventListener('progress', onProgress, false);
+				xhr.addEventListener('loadstart', function() {
+					progress.call(self, event, 0, 0, 0, files);
+				}, false);
+			}
+
+			return xhr;
+		};
+
+		//默认执行一次上传进度
+
 		//执行请求
-		$.ajax({
+		this._ajax = $.ajax({
 			url: this.settings.action,
 			type: 'post',
 			dataType: 'json',
 			processData: false,
 			contentType: false,
 			data: form,
-			xhr: optionXhr,
+			xhr: powerXhr,
 			context: this,
-			success: success.bind(this),
-			error: error.bind(this)
+			success: success,
+			error: error,
+			complete: function() {
+				this.getTrigger().val('');
+				complete.apply(this, arguments);
+			}
 		});
 		return this;
 	};
@@ -141,6 +163,7 @@ var Uploader = (function() {
 			this.settings.data = {};
 		}
 		this.settings.data[name] = value;
+		return this;
 	};
 	//触发的input file元素
 	Uploader.prototype.getTrigger = function() {
@@ -172,13 +195,45 @@ var Uploader = (function() {
 		callback && (this.settings.preprocess = callback);
 		return this;
 	};
+	//完成回调
+	Uploader.prototype.complete = function(callback) {
+		callback && (this.settings.complete = callback);
+		return this;
+	};
 	// enable
 	Uploader.prototype.enable = function() {
 		this.getTrigger().prop('disabled', false);
+		this.getTrigger().trigger('enable.uploader');
+		return this;
 	};
 	// disable
 	Uploader.prototype.disable = function() {
 		this.getTrigger().prop('disabled', true);
+		this.getTrigger().trigger('disabled.uploader');
+		return this;
+	};
+	Uploader.prototype.abort = function() {
+		if (this._ajax) {
+			this._ajax.abort();
+			this.getTrigger().trigger('abort.uploader');
+			this._ajax = null;
+		}
+		return this;
+	};
+	Uploader.prototype.on = function(event, callback) {
+		this.getTrigger().on(event + '.uploader', callback);
+		return this;
+	};
+	Uploader.prototype.off = function(event) {
+		if (event == undefined) {
+			event = '';
+		}
+		this.getTrigger().off(event + '.uploader');
+		return this;
+	};
+	Uploader.prototype.once = function(event, callback) {
+		this.getTrigger().one(event + '.uploader', callback);
+		return this;
 	};
 
 	// Helpers
@@ -186,10 +241,6 @@ var Uploader = (function() {
 	function isString(val) {
 		return Object.prototype.toString.call(val) === '[object String]';
 	}
-
-	function noop() {
-
-	};
 
 	function parse(str) {
 		if (!str) {
@@ -208,7 +259,7 @@ var Uploader = (function() {
 		return ret;
 	}
 
-	//Interface
+	//接口
 	function MultipleUploader(options) {
 		if (!(this instanceof MultipleUploader)) {
 			return new MultipleUploader(options);
@@ -224,59 +275,31 @@ var Uploader = (function() {
 		});
 		this._uploaders = uploaders;
 	}
-	MultipleUploader.prototype.submit = function() {
-		$.each(this._uploaders, function(i, item) {
-			item.submit();
-		});
-		return this;
-	};
-	MultipleUploader.prototype.change = function(callback) {
-		$.each(this._uploaders, function(i, item) {
-			item.change(callback);
-		});
-		return this;
-	};
-	MultipleUploader.prototype.success = function(callback) {
-		$.each(this._uploaders, function(i, item) {
-			item.success(callback);
-		});
-		return this;
-	};
-	MultipleUploader.prototype.error = function(callback) {
-		$.each(this._uploaders, function(i, item) {
-			item.error(callback);
-		});
-		return this;
-	};
-	MultipleUploader.prototype.progress = function(callback) {
-		$.each(this._uploaders, function(i, item) {
-			item.progress(callback);
-		});
-		return this;
-	};
-	MultipleUploader.prototype.preprocess = function(callback) {
-		$.each(this._uploaders, function(i, item) {
-			item.preprocess(callback);
-		});
-		return this;
-	};
-	MultipleUploader.prototype.enable = function() {
-		$.each(this._uploaders, function(i, item) {
-			item.enable();
-		});
-		return this;
-	};
-	MultipleUploader.prototype.disable = function() {
-		$.each(this._uploaders, function(i, item) {
-			item.disable();
-		});
-		return this;
-	};
+
 	MultipleUploader.isSupport = function() {
 		return !!window.FormData;
 	};
+
+	var methods = [
+		'submit', 'change', 'success', 'error', 'complete', 'progress', 'preprocess',
+		'enable', 'disable', 'abort',
+		'on', 'off', 'once'
+	];
+
+	$.each(methods, function(i, method) {
+		MultipleUploader.prototype[method] = function() {
+			var args = arguments;
+			$.each(this._uploaders, function(i, $item) {
+				$item[method].apply($item, args);
+			});
+			return this;
+		};
+	});
+
+
 	MultipleUploader.Uploader = Uploader;
 	return MultipleUploader;
+
 })();
 
 
