@@ -221,7 +221,7 @@ var Uploader = (function() {
 		return this;
 	};
 	Uploader.prototype.on = function(event, callback) {
-		this.getTrigger().on(event + '.uploader', callback);
+		this.getTrigger().on(event + '.uploader', $.proxy(callback, this));
 		return this;
 	};
 	Uploader.prototype.off = function(event) {
@@ -232,7 +232,7 @@ var Uploader = (function() {
 		return this;
 	};
 	Uploader.prototype.once = function(event, callback) {
-		this.getTrigger().one(event + '.uploader', callback);
+		this.getTrigger().one(event + '.uploader', $.proxy(callback, this));
 		return this;
 	};
 
