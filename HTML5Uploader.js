@@ -151,7 +151,7 @@ var Uploader = (function() {
 			context: this,
 			success: success,
 			error: function(xhr, errorText) {
-				if (errorText == 'abort') {
+				if (errorText != 'abort') {
 					error.apply(this, arguments);
 				}
 			},
