@@ -124,7 +124,7 @@ var Uploader = (function() {
 				progress.call(self, event, percent, position, total, files);
 			};
 
-			if (!support) {
+			if (support) {
 				xhr.upload.addEventListener('progress', onProgress, false);
 			}
 			else {
@@ -150,7 +150,11 @@ var Uploader = (function() {
 			xhr: powerXhr,
 			context: this,
 			success: success,
-			error: error,
+			error: function(xhr, error) {
+				if (error == 'abort') {
+					error.apply(this, arguments);
+				}
+			},
 			complete: function() {
 				this.getTrigger().val('');
 				complete.apply(this, arguments);
@@ -301,5 +305,3 @@ var Uploader = (function() {
 	return MultipleUploader;
 
 })();
-
-
