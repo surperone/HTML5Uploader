@@ -150,8 +150,8 @@ var Uploader = (function() {
 			xhr: powerXhr,
 			context: this,
 			success: success,
-			error: function(xhr, error) {
-				if (error == 'abort') {
+			error: function(xhr, errorText) {
+				if (errorText == 'abort') {
 					error.apply(this, arguments);
 				}
 			},
