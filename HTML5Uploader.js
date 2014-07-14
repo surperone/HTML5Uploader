@@ -203,19 +203,19 @@ var Uploader = (function() {
 	// enable
 	Uploader.prototype.enable = function() {
 		this.getTrigger().prop('disabled', false);
-		this.getTrigger().trigger('enable.uploader');
+		this.getTrigger().triggerHandler('enable');
 		return this;
 	};
 	// disable
 	Uploader.prototype.disable = function() {
 		this.getTrigger().prop('disabled', true);
-		this.getTrigger().trigger('disabled.uploader');
+		this.getTrigger().triggerHandler('disable');
 		return this;
 	};
 	Uploader.prototype.abort = function() {
 		if (this._ajax) {
 			this._ajax.abort();
-			this.getTrigger().trigger('abort.uploader');
+			this.getTrigger().triggerHandler('abort');
 			this._ajax = null;
 		}
 		return this;
