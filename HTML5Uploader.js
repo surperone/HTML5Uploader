@@ -107,10 +107,10 @@ var Uploader = (function() {
 		//进度
 		var powerXhr = function() {
 			var xhr = new XMLHttpRequest();
-			//不支持xhr.upload的上传进度事件
 			var ua = navigator.userAgent.toLowerCase();
 			var isWechat = typeof WeixinJSBridge != 'undefined' || ua.indexOf('micromessenger') != -1;
 			var isIos = ua.indexOf('ios') != -1 || ua.indexOf('iphone') != -1 || ua.indexOf('ipad') != -1;
+
 			var support = xhr.upload && 'onprogress' in xhr.upload && (!isWechat || isIos);
 
 			var onProgress = function(event) {
@@ -128,10 +128,27 @@ var Uploader = (function() {
 				xhr.upload.addEventListener('progress', onProgress, false);
 			}
 			else {
-				xhr.addEventListener('progress', onProgress, false);
+				//不支持xhr.upload的上传进度事件
+				var timer, process = 0;
 				xhr.addEventListener('loadstart', function() {
-					progress.call(self, event, 0, 0, 0, files);
+					timer = setInterval(function() {
+						if (process >= 82) {
+							timer && clearInterval(timer);
+						}
+						else {
+							process+=3;
+							//do something
+							progress.call(self, event, process, 0, 0, files);
+						}
+					},500);
+
+					progress.call(self, event, 0, 0, null, files);
 				}, false);
+				xhr.onload = function(){
+					timer && clearInterval(timer);
+					progress.call(self, event, 100, 0, null, files);
+					process = 0;
+				}
 			}
 
 			return xhr;
