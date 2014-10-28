@@ -2,8 +2,8 @@
 <html lang="zh-cn">
 <head>
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
-	<script type="text/javascript" src="./jquery.min.js"></script>
+	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0" />
+	<script type="text/javascript" src="./bower_components/jquery/dist/jquery.min.js"></script>
 	<script type="text/javascript" src="./HTML5Uploader.js?<?= time(); ?>"></script>
 	<script type="text/javascript" src="./makeThumb.js?<?= time(); ?>"></script>
 	<title>HTML5Uploader.js</title>
@@ -36,8 +36,12 @@ $token = $putPolicy->Token(null);
 		data: {
 			token: '<?= $token; ?>'
 		},
-		change: function() {
-			this.submit();
+		preprocess: function(files, complete) {
+			makeThumb(files[0], {
+				success: function(file) {
+					complete([file]);
+				}
+			});
 		},
 		progress: function(e, rate) {
 			$('#progress span').text(rate+'%');

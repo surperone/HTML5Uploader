@@ -104,7 +104,7 @@ var makeThumb = (function() {
 		this.fromBase64 = function(strBase64) {
 			data = window.atob(strBase64);
 		}
-	}
+	};
 	var BinaryAjax = (function() {
 		function createRequest() {
 			var oHTTP = null;
@@ -361,7 +361,7 @@ var makeThumb = (function() {
 			0x0131: "Software",
 			0x013B: "Artist",
 			0x8298: "Copyright"
-		}
+		};
 		EXIF.GPSTags = {
 			0x0000: "GPSVersionID",
 			0x0001: "GPSLatitudeRef",
@@ -394,7 +394,7 @@ var makeThumb = (function() {
 			0x001C: "GPSAreaInformation",
 			0x001D: "GPSDateStamp",
 			0x001E: "GPSDifferential"
-		}
+		};
 		EXIF.StringValues = {
 			ExposureProgram: {
 				0: "Not defined",
@@ -530,7 +530,7 @@ var makeThumb = (function() {
 				5: "G",
 				6: "B"
 			}
-		}
+		};
 		function imageHasData(oImg) {
 			return !!(oImg.exifdata);
 		}
@@ -1081,6 +1081,37 @@ var makeThumb = (function() {
 		return MegaPixImage;
 	})();
 
+	var dataURLtoBlob = function (dataURI) {
+		// convert base64 to raw binary data held in a string
+		// doesn't handle URLEncoded DataURIs
+		var byteString = atob(dataURI.split(',')[1]);
+
+		// separate out the mime component
+		var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+
+		// write the bytes of the string to an ArrayBuffer
+		var ab = new ArrayBuffer(byteString.length);
+		var ia = new Uint8Array(ab);
+		for (var i = 0; i < byteString.length; i++) {
+			ia[i] = byteString.charCodeAt(i);
+		}
+
+		try {
+			if (window.Blob) {
+				return new Blob([ab], {type: mimeString});
+			}
+			else {
+				var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder;
+				var bb = new BlobBuilder();
+				bb.append(ab);
+				return bb.getBlob(mimeString);
+			}
+		}
+		catch (e) {
+			return null;
+		}
+	};
+
 	var checkAccess = function() {
 		var URL = window.URL && window.URL.createObjectURL ? window.URL :
 		          window.webkitURL && window.webkitURL.createObjectURL ? window.webkitURL :
@@ -1144,7 +1175,7 @@ var makeThumb = (function() {
 			var size = {width: image.width, height: image.height};
 			if ($.trim(dataURL) != '') {
 				if ($.isFunction(opts.success)) {
-					opts.success(dataURL, fEvt.target.result, exif || null, size);
+					opts.success(dataURLtoBlob(dataURL), fEvt.target.result, exif || null, size);
 				}
 			}
 			else {
@@ -1167,7 +1198,9 @@ var makeThumb = (function() {
 				context.fillRect(0, 0, opts.width, opts.height);
 			}
 			mpImg.render(canvas, { maxWidth: opts.width, maxHeight: opts.height, orientation: orientation });
-			return callback(fEvt, exif);
+			setTimeout(function() {
+				callback(fEvt, exif);
+			}, 1);
 		};
 
 		fr.onerror = function(fEvt) { // error callback
@@ -1192,8 +1225,7 @@ var makeThumb = (function() {
 			};
 			// Converting the data-url to a binary string
 			var base64 = result.replace(/^.*?,/, '');
-			var binary = atob(base64);
-			var binaryData = new BinaryFile(binary);
+			var binaryData = new BinaryFile(atob(base64));
 			// get EXIF data
 			exif = EXIF.readFromBinaryFile(binaryData);
 			if (exif) {
@@ -1205,8 +1237,6 @@ var makeThumb = (function() {
 				}
 			}
 			result = result.replace('data:base64', 'data:image/jpeg;base64');
-			// console.log(exif);
-			// alert(file.name +': '+ exif.Orientation);
 			image.src = result;
 		};
 
@@ -1217,7 +1247,7 @@ var makeThumb = (function() {
 
 	return function(file, opts) {
 		if (!checkAccess()) {
-			opts.error("your brower isn't be supported");
+			opts.error("your brower isn't support makeThumb");
 		}
 		//类型为空的话，通过下载img判断是否是图片
 		else if (file.type == '' && file instanceof Blob) {
@@ -1240,34 +1270,3 @@ var makeThumb = (function() {
 		}
 	};
 })();
-
-function dataURItoBlob(dataURI) {
-	// convert base64 to raw binary data held in a string
-	// doesn't handle URLEncoded DataURIs
-	var byteString = atob(dataURI.split(',')[1]);
-
-	// separate out the mime component
-	var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-
-	// write the bytes of the string to an ArrayBuffer
-	var ab = new ArrayBuffer(byteString.length);
-	var ia = new Uint8Array(ab);
-	for (var i = 0; i < byteString.length; i++) {
-		ia[i] = byteString.charCodeAt(i);
-	}
-
-	try {
-		if (window.Blob) {
-			return new Blob([ab], {type: mimeString});
-		}
-		else {
-			var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder;
-			var bb = new BlobBuilder();
-			bb.append(ab);
-			return bb.getBlob(mimeString);
-		}
-	}
-	catch (e) {
-		return null;
-	}
-}
