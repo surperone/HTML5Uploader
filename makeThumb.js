@@ -1176,7 +1176,6 @@ Uploader.makeThumb = (function() {
 			if ($.trim(dataURL) != '') {
 				if ($.isFunction(opts.success)) {
 					opts.success(dataURLtoBlob(dataURL), dataURL, {
-						dataURL: dataURL,
 						size: size,
 						exif: exif || null,
 						oriDataURL: fEvt.target.result
