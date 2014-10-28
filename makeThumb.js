@@ -1,4 +1,4 @@
-var makeThumb = (function() {
+Uploader.makeThumb = (function() {
 	"use strict";
 	/*
 	 * Binary Ajax 0.1.10

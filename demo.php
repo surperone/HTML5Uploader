@@ -37,7 +37,7 @@ $token = $putPolicy->Token(null);
 			token: '<?= $token; ?>'
 		},
 		preprocess: function(files, complete) {
-			makeThumb(files[0], {
+			Uploader.makeThumb(files[0], {
 				success: function(file) {
 					complete([file]);
 				}
