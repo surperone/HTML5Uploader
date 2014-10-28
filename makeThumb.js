@@ -1175,11 +1175,17 @@ Uploader.makeThumb = (function() {
 			var size = {width: image.width, height: image.height};
 			if ($.trim(dataURL) != '') {
 				if ($.isFunction(opts.success)) {
-					opts.success(dataURLtoBlob(dataURL), dataURL, {
-						size: size,
-						exif: exif || null,
-						oriDataURL: fEvt.target.result
-					});
+					var blob = dataURLtoBlob(dataURL);
+					if (blob.size == 0) {
+						opts.success(dataURLtoBlob(dataURL), dataURL, {
+							size: size,
+							exif: exif || null,
+							oriDataURL: fEvt.target.result
+						});
+					}
+					else {
+						opts.error('dataURL to blob error', fEvt);
+					}
 				}
 			}
 			else {
