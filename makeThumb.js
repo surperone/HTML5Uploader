@@ -1175,7 +1175,12 @@ Uploader.makeThumb = (function() {
 			var size = {width: image.width, height: image.height};
 			if ($.trim(dataURL) != '') {
 				if ($.isFunction(opts.success)) {
-					opts.success(dataURLtoBlob(dataURL), fEvt.target.result, exif || null, size);
+					opts.success(dataURLtoBlob(dataURL), dataURL, {
+						dataURL: dataURL,
+						size: size,
+						exif: exif || null,
+						oriDataURL: fEvt.target.result
+					});
 				}
 			}
 			else {
