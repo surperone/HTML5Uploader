@@ -1176,7 +1176,7 @@ Uploader.makeThumb = (function() {
 			if ($.trim(dataURL) != '') {
 				if ($.isFunction(opts.success)) {
 					var blob = dataURLtoBlob(dataURL);
-					if (blob.size == 0) {
+					if (blob.size != 0) {
 						opts.success(dataURLtoBlob(dataURL), dataURL, {
 							size: size,
 							exif: exif || null,
@@ -1184,7 +1184,7 @@ Uploader.makeThumb = (function() {
 						});
 					}
 					else {
-						opts.error('dataURL to blob error', fEvt);
+						opts.error && opts.error('dataURL to blob error', fEvt);
 					}
 				}
 			}
