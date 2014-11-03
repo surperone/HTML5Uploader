@@ -1210,7 +1210,7 @@ Uploader.makeThumb = (function() {
 			mpImg.render(canvas, { maxWidth: opts.width, maxHeight: opts.height, orientation: orientation });
 			setTimeout(function() {
 				callback(fEvt, exif);
-			}, 1);
+			}, 100);
 		};
 
 		fr.onerror = function(fEvt) { // error callback
