@@ -1170,6 +1170,7 @@ Uploader.makeThumb = (function() {
 
 		var callback = function(fEvt, exif) {
 			dataURL = canvas.toDataURL(opts.type); // 'image/jpeg'
+			window.console && console.debug('html5Upload:' + dataURL);
 			// debug: show thumb
 			// var thumb = new Image();thumb.src = dataURL;$(thumb).appendTo($body);
 			var size = {width: image.width, height: image.height};
