@@ -1,6 +1,6 @@
 {
 	"name": "HTML5Uploader",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"main": "html5Uploader.js",
 	"devDependencies": {
 		"grunt": "~0.4.1",
