@@ -1116,7 +1116,7 @@ Uploader.makeThumb = (function() {
 		var URL = window.URL && window.URL.createObjectURL ? window.URL :
 		          window.webkitURL && window.webkitURL.createObjectURL ? window.webkitURL :
 		          null;
-		return !!window.FileReader && !!URL && !!window.Blob;
+		return !!window.FileReader && !!URL && !!window.Blob && window.Uint8Array && window.ArrayBuffer;
 	};
 
 	var createObjectURL = function(file) {
@@ -1177,7 +1177,9 @@ Uploader.makeThumb = (function() {
 			if ($.trim(dataURL) != '') {
 				if ($.isFunction(opts.success)) {
 					var blob = dataURLtoBlob(dataURL);
+					console.dir(blob)
 					if (blob.size != 0) {
+						alert(56666);
 						opts.success(dataURLtoBlob(dataURL), dataURL, {
 							size: size,
 							exif: exif || null,
@@ -1185,11 +1187,13 @@ Uploader.makeThumb = (function() {
 						});
 					}
 					else {
+						alert(22222);
 						opts.error && opts.error('dataURL to blob error', fEvt);
 					}
 				}
 			}
 			else {
+				alert(5555);
 				if ($.isFunction(opts.error)) {
 					opts.error(file, fEvt);
 				}
