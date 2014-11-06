@@ -1179,7 +1179,6 @@ Uploader.makeThumb = (function() {
 					var blob = dataURLtoBlob(dataURL);
 					console.dir(blob)
 					if (blob.size != 0) {
-						alert(56666);
 						opts.success(dataURLtoBlob(dataURL), dataURL, {
 							size: size,
 							exif: exif || null,
@@ -1187,13 +1186,11 @@ Uploader.makeThumb = (function() {
 						});
 					}
 					else {
-						alert(22222);
 						opts.error && opts.error('dataURL to blob error', fEvt);
 					}
 				}
 			}
 			else {
-				alert(5555);
 				if ($.isFunction(opts.error)) {
 					opts.error(file, fEvt);
 				}
