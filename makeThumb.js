@@ -1082,21 +1082,20 @@ Uploader.makeThumb = (function() {
 	})();
 
 	var dataURLtoBlob = function (dataURI) {
-		// convert base64 to raw binary data held in a string
-		// doesn't handle URLEncoded DataURIs
-		var byteString = atob(dataURI.split(',')[1]);
-
-		// separate out the mime component
-		var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-
-		// write the bytes of the string to an ArrayBuffer
-		var ab = new ArrayBuffer(byteString.length);
-		var ia = new Uint8Array(ab);
-		for (var i = 0; i < byteString.length; i++) {
-			ia[i] = byteString.charCodeAt(i);
-		}
-
 		try {
+			// convert base64 to raw binary data held in a string
+			// doesn't handle URLEncoded DataURIs
+			var byteString = atob(dataURI.split(',')[1]);
+
+			// separate out the mime component
+			var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+
+			// write the bytes of the string to an ArrayBuffer
+			var ab = new ArrayBuffer(byteString.length);
+			var ia = new Uint8Array(ab);
+			for (var i = 0; i < byteString.length; i++) {
+				ia[i] = byteString.charCodeAt(i);
+			}
 			if (window.Blob) {
 				return new Blob([ab], {type: mimeString});
 			}
@@ -1175,9 +1174,8 @@ Uploader.makeThumb = (function() {
 			// var thumb = new Image();thumb.src = dataURL;$(thumb).appendTo($body);
 			var size = {width: image.width, height: image.height};
 			if ($.trim(dataURL) != '') {
+				var blob = dataURLtoBlob(dataURL);
 				if ($.isFunction(opts.success)) {
-					var blob = dataURLtoBlob(dataURL);
-					console.dir(blob)
 					if (blob.size != 0) {
 						opts.success(dataURLtoBlob(dataURL), dataURL, {
 							size: size,
