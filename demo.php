@@ -40,6 +40,9 @@ $token = $putPolicy->Token(null);
 			Uploader.makeThumb(files[0], {
 				success: function(file) {
 					complete([file]);
+				},
+				error: function() {
+					complete(files);
 				}
 			});
 		},

@@ -1157,6 +1157,7 @@ Uploader.makeThumb = (function() {
 	var IMG_FILE = /image.*/;
 
 	function make(file, options) {
+		Uploader.debug('开始生成图片缩略图');
 		var opts = {};
 		$.extend(opts, setting, options);
 
@@ -1169,31 +1170,28 @@ Uploader.makeThumb = (function() {
 
 		var callback = function(fEvt, exif) {
 			dataURL = canvas.toDataURL(opts.type); // 'image/jpeg'
-			window.console && console.debug('html5Upload:' + dataURL);
 			// debug: show thumb
 			// var thumb = new Image();thumb.src = dataURL;$(thumb).appendTo($body);
 			var size = {width: image.width, height: image.height};
-			if ($.trim(dataURL) != '') {
-				var blob = dataURLtoBlob(dataURL);
-				if ($.isFunction(opts.success)) {
-					if (blob.size != 0) {
-						opts.success(dataURLtoBlob(dataURL), dataURL, {
-							size: size,
-							exif: exif || null,
-							oriDataURL: fEvt.target.result
-						});
-					}
-					else {
-						opts.error && opts.error('dataURL to blob error', fEvt);
-					}
-				}
-			}
-			else {
-				if ($.isFunction(opts.error)) {
-					opts.error(file, fEvt);
-				}
-			}
+			dataURL = $.trim(dataURL);
 			$canvas.remove(); // delete canvas
+			if (dataURL == '') {
+				Uploader.debug('生成缩略图失败(读取canvas的dataURL失败)');
+				$.isFunction(opts.error) && opts.error('ready dataURL fail', fEvt);
+				return;
+			}
+			var blob = dataURLtoBlob(dataURL);
+			if (!blob || blob.size == 0) {
+				Uploader.debug('生成缩略图失败(无法把DataURL转为Blob)')
+				opts.error && opts.error('dataURL to blob error', fEvt);
+				return;
+			}
+			Uploader.debug('生成缩略图成功');
+			$.isFunction(opts.success) && opts.success(blob, dataURL, {
+				size: size,
+				exif: exif || null,
+				oriDataURL: fEvt.target.result
+			});
 		};
 
 		var mpImg = new MegaPixImage(file);
@@ -1214,21 +1212,25 @@ Uploader.makeThumb = (function() {
 		};
 
 		fr.onerror = function(fEvt) { // error callback
+			Uploader.debug('获取失败');
 			if ($.isFunction(opts.error)) {
 				opts.error('read dataURL fail', fEvt);
 			}
 		};
 
 		fr.onload = function(fEvt) { // onload success
+			Uploader.debug('获取成功，对DataURL进行处理，取得需要的数据');
 			var target = fEvt.target;
 			var result = target.result;
 			// load img
 			image = new Image();
 			var exif;
 			image.onload = function() { // imgW / height
+				Uploader.debug('获取数据成功，生成缩略图中...');
 				drawImage.apply(null, [fEvt, exif]);
 			};
 			image.onerror = function() {
+				Uploader.debug('获取数据失败');
 				if ($.isFunction(opts.error)) {
 					opts.error('read dataURL image error', fEvt);
 				}
@@ -1249,7 +1251,7 @@ Uploader.makeThumb = (function() {
 			result = result.replace('data:base64', 'data:image/jpeg;base64');
 			image.src = result;
 		};
-
+		Uploader.debug('获取图片源文件DataURL');
 		fr.readAsDataURL(file);
 		// 用fr.readAsBinaryString(file); 也要用binaryajax(exif对binaryajax的方法有依赖), 而且返回的图片是空白
 		// 猜测是没有用image.onload里面去drawImage导致.
@@ -1257,7 +1259,8 @@ Uploader.makeThumb = (function() {
 
 	return function(file, opts) {
 		if (!checkAccess()) {
-			opts.error("your brower isn't support makeThumb");
+			Uploader.debug('浏览器不支持生成缩略图');
+			$.isFunction(opts.error) && opts.error("your brower isn't support makeThumb");
 		}
 		//类型为空的话，通过下载img判断是否是图片
 		else if (file.type == '' && file instanceof Blob) {
@@ -1266,14 +1269,14 @@ Uploader.makeThumb = (function() {
 				make(file, opts);
 			};
 			img.onerror = function() {
-				opts.error('the file is not a image');
+				Uploader.debug('图片加载失败，URL错误或不是图片类型');
+				$.isFunction(opts.error) && opts.error('the file is not a image');
 			};
 			img.src = createObjectURL(file);
 		}
 		else if (!IMG_FILE.test(file.type)) {
-			if ($.isFunction(opts.error)) {
-				opts.error('the file is not a image');
-			}
+			Uploader.debug('文件不是图片类型');
+			$.isFunction(opts.error) && opts.error('the file is not a image');
 		}
 		else {
 			make(file, opts);

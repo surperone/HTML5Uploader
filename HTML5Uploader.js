@@ -1,13 +1,14 @@
 var Uploader = (function() {
+	debug(navigator.userAgent);
 	function Uploader(options) {
 		if (!(this instanceof Uploader)) {
 			return new Uploader(options);
 		}
 		//不支持
 		if (!window.FormData) {
+			debug('浏览器不支持FormData或Ajax上传')
 			throw new Error('浏览器不支持');
 		}
-
 		if (isString(options)) {
 			options = {trigger: options};
 		}
@@ -41,6 +42,8 @@ var Uploader = (function() {
 		this.setup();
 	}
 
+	Uploader._debug = false;
+
 	// initialize
 	// create input, form, iframe
 	Uploader.prototype.setup = function() {
@@ -49,6 +52,7 @@ var Uploader = (function() {
 		$trigger.on('change', function(e) {
 			var files = this.files;
 			if (files && files.length > 0 && files[0].name != '') {
+				debug('已选择要上传的文件');
 				// ie9 don't support FileList Object
 				// http://stackoverflow.com/questions/12830058/ie8-input-type-file-get-files
 				self._files = this.files || [{name: e.target.value}];
@@ -68,12 +72,15 @@ var Uploader = (function() {
 			return this;
 		}
 		else if (this.settings.preprocess) {
+			debug('调用上传预处理器');
 			var self = this;
 			this.settings.preprocess.call(this, self._files, function(files) {
+				debug('处理完成，开始上传，文件数量：' + files.length);
 				self._upload(files);
 			});
 		}
 		else {
+			debug('开始上传，文件数量：' + this._files.length);
 			this._upload(this._files);
 		}
 		return this;
@@ -89,6 +96,7 @@ var Uploader = (function() {
 			form.append(name, value);
 		});
 		if (this.settings.multiple) {
+			debug('上传类型是多文件上传');
 			$.each(files, function(i, file) {
 				var name = self.settings.name + '[' + i + ']';
 				form.append(name, file);
@@ -121,6 +129,7 @@ var Uploader = (function() {
 				if (event.lengthComputable) {
 					percent = Math.ceil(position/total*100);
 				}
+				debug('上传进度：' + percent + '%');
 				progress.call(self, event, percent, position, total, files);
 			};
 
@@ -128,6 +137,7 @@ var Uploader = (function() {
 				xhr.upload.addEventListener('progress', onProgress, false);
 			}
 			else {
+				debug('浏览器不支持上传进度，使用模拟进度');
 				//不支持xhr.upload的上传进度事件
 				var timer, process = 0;
 				xhr.addEventListener('loadstart', function() {
@@ -138,6 +148,7 @@ var Uploader = (function() {
 						else {
 							process+=3;
 							//do something
+							debug('上传进度：' + process + '%');
 							progress.call(self, event, process, 0, 0, files);
 						}
 					},500);
@@ -166,8 +177,12 @@ var Uploader = (function() {
 			data: form,
 			xhr: powerXhr,
 			context: this,
-			success: success,
+			success: function() {
+				debug('文件上传成功！');
+				success.apply(this, arguments);
+			},
 			error: function(xhr, errorText) {
+				debug('文件上传失败！');
 				if (errorText != 'abort') {
 					error.apply(this, arguments);
 				}
@@ -280,6 +295,16 @@ var Uploader = (function() {
 		return ret;
 	}
 
+	function debug(msg) {
+		if (!Uploader._debug) {
+			return;
+		}
+		if (typeof msg == 'object' && msg != null && window.JSON) {
+			msg = JSON.stringify(msg);
+		}
+		window.console && console.debug('[HTML5Uploader]:' + msg);
+	}
+
 	//接口
 	function MultipleUploader(options) {
 		if (!(this instanceof MultipleUploader)) {
@@ -300,6 +325,7 @@ var Uploader = (function() {
 	MultipleUploader.isSupport = function() {
 		return !!window.FormData;
 	};
+	MultipleUploader.debug = debug;
 
 	var methods = [
 		'submit', 'change', 'success', 'error', 'complete', 'progress', 'preprocess',
