@@ -4,11 +4,12 @@ var Uploader = (function() {
 		if (!(this instanceof Uploader)) {
 			return new Uploader(options);
 		}
-		//不支持
-		if (!window.FormData) {
+		//浏览器不支持
+		if (!Uploader.isSupport()) {
 			debug('浏览器不支持FormData或Ajax上传')
 			throw new Error('浏览器不支持');
 		}
+		//合并配置
 		if (isString(options)) {
 			options = {trigger: options};
 		}
@@ -36,13 +37,21 @@ var Uploader = (function() {
 		if (settings.multiple == null) {
 			settings.multiple = $trigger.prop('multiple');
 		}
-
+		//设置是否选择多图片
+		$trigger.prop('multiple', !!settings.multiple);
 		this.settings = settings;
-
+		//上传队列
+		this.queue = [];
+		//初始化
 		this.setup();
 	}
 
-	Uploader._debug = false;
+	Uploader._debug = true;
+
+	Uploader.isSupport = function() {
+		return !!window.FormData;
+	}
+	Uploader.debug = debug;
 
 	// initialize
 	// create input, form, iframe
@@ -51,16 +60,20 @@ var Uploader = (function() {
 		var $trigger = this.getTrigger();
 		$trigger.on('change', function(e) {
 			var files = this.files;
-			if (files && files.length > 0 && files[0].name != '') {
+			//过滤文件
+			files = arrayFilter(files, function(file) {
+				return file && file.name != '';
+			});
+			if (files.length > 0) {
 				debug('已选择要上传的文件');
 				// ie9 don't support FileList Object
 				// http://stackoverflow.com/questions/12830058/ie8-input-type-file-get-files
-				self._files = this.files || [{name: e.target.value}];
+				self._files = files || [{name: e.target.value}];
 				var file = $trigger.val();
 				if (self.settings.change) {
 					self.settings.change.call(self, self._files);
 				}
-				else if (file) {
+				else {
 					self.submit();
 				}
 			}
@@ -71,41 +84,133 @@ var Uploader = (function() {
 		if (this._files.length < 1) {
 			return this;
 		}
-		else if (this.settings.preprocess) {
-			debug('调用上传预处理器');
-			var self = this;
-			this.settings.preprocess.call(this, self._files, function(files) {
-				debug('处理完成，开始上传，文件数量：' + files.length);
-				self._upload(files);
+		var settings = this.settings;
+		var that = this;
+		//创建上传器，加入上传队列
+		$.each(this._files, function(i, file) {
+			var uploadFile = new UploadFile(file, {
+				data: settings.data,
+				name: settings.name,
+				action: settings.action
 			});
+			uploadFile.preprocess($.proxy(settings.preprocess, that));
+			uploadFile.success($.proxy(settings.success, that));
+			uploadFile.error($.proxy(settings.error, that));
+			uploadFile.complete($.proxy(that._nextUpload, that));
+			that.queue.push(uploadFile);
+		});
+		this._upload();
+		return this;
+	};
+	Uploader.prototype._upload = function() {
+		if (this.queue.length > 0 && !this.queue[0].active) {
+			debug('开始上传文件(0)');
+			this.queue[0].upload();
+		}
+	};
+	Uploader.prototype._nextUpload = function() {
+		if (this.queueCount() == 0) {
+			debug('全部文件上传完毕');
+			this.queue = [];
+			this.getTrigger().val('');
+			if (this.settings.complete) {
+				this.settings.complete.call(this);
+			}
 		}
 		else {
-			debug('开始上传，文件数量：' + this._files.length);
-			this._upload(this._files);
+			var next = this.queueTotal() - this.queueCount();
+			debug('开始上传文件(' + next + ')');
+			this.queue[next].upload();
+		}
+	};
+	Uploader.prototype.queueCount = function() {
+		var queue = arrayFilter(this.queue, function(upload) {
+			return !upload.state;
+		});
+		return queue.length;
+	};
+	Uploader.prototype.queueTotal = function() {
+		return this.queue.length;
+	};
+	//触发的input file元素
+	Uploader.prototype.getTrigger = function() {
+		return $(this.settings.trigger);
+	};
+	// enable
+	Uploader.prototype.enable = function() {
+		this.getTrigger().prop('disabled', false);
+		this.getTrigger().triggerHandler('enable');
+		return this;
+	};
+	// disable
+	Uploader.prototype.disable = function() {
+		this.getTrigger().prop('disabled', true);
+		this.getTrigger().triggerHandler('disable');
+		return this;
+	};
+	Uploader.prototype.abort = function() {
+		if (this.queue.length > 0) {
+			$.each(this.queue, function(upload) {
+				upload.abort();
+			});
+			this.getTrigger().triggerHandler('abort');
 		}
 		return this;
 	};
-	//上传
-	Uploader.prototype._upload = function(files) {
+	Uploader.prototype.on = function(event, callback) {
+		this.getTrigger().on(event + '.uploader', $.proxy(callback, this));
+		return this;
+	};
+	Uploader.prototype.off = function(event) {
+		if (event == undefined) {
+			event = '';
+		}
+		this.getTrigger().off(event + '.uploader');
+		return this;
+	};
+	Uploader.prototype.once = function(event, callback) {
+		this.getTrigger().one(event + '.uploader', $.proxy(callback, this));
+		return this;
+	};
+
+	//文件上传类
+	function UploadFile(file, settings) {
+		this.file = file;
+		this.active = false;
+		this.state = 0;
+		this.settings = settings;
+	}
+
+	UploadFile.prototype.upload = function() {
+		this.active = true;
+		if (this.settings.preprocess) {
+			debug('调用上传预处理器');
+			var self = this;
+			//接口兼容性处理，该接口在旧版本中是传递FileList作为参数
+			var file = [this.file];
+			this.settings.preprocess(file, function(file) {
+				debug('处理完成，开始上传');
+				if (file instanceof Array) {
+					file = file[0];
+				}
+				self._upload(file);
+			});
+		}
+		else {
+			this._upload(this.file);
+		}
+	};
+
+	UploadFile.prototype._upload = function(file) {
 		var self = this;
 		// build a FormData
 		var form = new FormData();
 		var params = this.settings.data;
-		params = $.isFunction(params) ? params.call(this, files) : params;
+		params = $.isFunction(params) ? params.call(null, file) : params;
 		$.each(params || {}, function(name, value) {
 			form.append(name, value);
 		});
-		if (this.settings.multiple) {
-			debug('上传类型是多文件上传');
-			$.each(files, function(i, file) {
-				var name = self.settings.name + '[' + i + ']';
-				form.append(name, file);
-			});
-		}
-		else {
-			form.append(this.settings.name, files[0]);
-		}
-
+		form.append(this.settings.name, file);
 		//回调
 		var success = this.settings.success || function() {};
 		var error = this.settings.error || function() {};
@@ -130,7 +235,7 @@ var Uploader = (function() {
 					percent = Math.ceil(position/total*100);
 				}
 				debug('上传进度：' + percent + '%');
-				progress.call(self, event, percent, position, total, files);
+				progress(event, percent, position, total, file);
 			};
 
 			if (support) {
@@ -149,15 +254,15 @@ var Uploader = (function() {
 							process+=3;
 							//do something
 							debug('上传进度：' + process + '%');
-							progress.call(self, event, process, 0, 0, files);
+							progress(event, process, 0, 0, file);
 						}
 					},500);
 
-					progress.call(self, event, 0, 0, null, files);
+					progress(event, 0, 0, null, file);
 				}, false);
 				xhr.onload = function(){
 					timer && clearInterval(timer);
-					progress.call(self, event, 100, 0, null, files);
+					progress(event, 100, 0, null, file);
 					process = 0;
 				}
 			}
@@ -168,7 +273,7 @@ var Uploader = (function() {
 		//默认执行一次上传进度
 
 		//执行请求
-		this._ajax = $.ajax({
+		this.ajax = $.ajax({
 			url: this.settings.action,
 			type: 'post',
 			dataType: 'json',
@@ -179,103 +284,60 @@ var Uploader = (function() {
 			context: this,
 			success: function() {
 				debug('文件上传成功！');
-				success.apply(this, arguments);
+				success.apply(null, arguments);
 			},
 			error: function(xhr, errorText) {
 				debug('文件上传失败！');
 				if (errorText != 'abort') {
-					error.apply(this, arguments);
+					error.apply(null, arguments);
 				}
 			},
 			complete: function() {
-				this.getTrigger().val('');
-				complete.apply(this, arguments);
+				self.state = 1;
+				complete.apply(null, arguments);
 			}
 		});
-		return this;
 	};
-	Uploader.prototype.setData = function(name, value) {
-		if (!this.settings.data) {
-			this.settings.data = {};
-		}
-		this.settings.data[name] = value;
-		return this;
+
+	UploadFile.prototype.abort = function() {
+		this.ajax && this.ajax.abort();
 	};
-	//触发的input file元素
-	Uploader.prototype.getTrigger = function() {
-		return $(this.settings.trigger);
+
+	UploadFile.prototype.preprocess = function(callback) {
+		this.settings.preprocess = callback;
 	};
-	// handle change event
-	// when value in file input changed
-	Uploader.prototype.change = function(callback) {
-		callback && (this.settings.change = callback);
-		return this;
+
+	UploadFile.prototype.success = function(callback) {
+		this.settings.success = callback;
 	};
-	//上传成功回调
-	Uploader.prototype.success = function(callback) {
-		callback && (this.settings.success = callback);
-		return this;
+
+	UploadFile.prototype.error = function(callback) {
+		this.settings.error = callback;
 	};
-	//错误回调
-	Uploader.prototype.error = function(callback) {
-		callback && (this.settings.error = callback);
-		return this;
-	};
-	//上传进度回调
-	Uploader.prototype.progress = function(callback) {
-		callback && (this.settings.progress = callback);
-		return this;
-	};
-	//预处理器
-	Uploader.prototype.preprocess = function(callback) {
-		callback && (this.settings.preprocess = callback);
-		return this;
-	};
-	//完成回调
-	Uploader.prototype.complete = function(callback) {
-		callback && (this.settings.complete = callback);
-		return this;
-	};
-	// enable
-	Uploader.prototype.enable = function() {
-		this.getTrigger().prop('disabled', false);
-		this.getTrigger().triggerHandler('enable');
-		return this;
-	};
-	// disable
-	Uploader.prototype.disable = function() {
-		this.getTrigger().prop('disabled', true);
-		this.getTrigger().triggerHandler('disable');
-		return this;
-	};
-	Uploader.prototype.abort = function() {
-		if (this._ajax) {
-			this._ajax.abort();
-			this.getTrigger().triggerHandler('abort');
-			this._ajax = null;
-		}
-		return this;
-	};
-	Uploader.prototype.on = function(event, callback) {
-		this.getTrigger().on(event + '.uploader', $.proxy(callback, this));
-		return this;
-	};
-	Uploader.prototype.off = function(event) {
-		if (event == undefined) {
-			event = '';
-		}
-		this.getTrigger().off(event + '.uploader');
-		return this;
-	};
-	Uploader.prototype.once = function(event, callback) {
-		this.getTrigger().one(event + '.uploader', $.proxy(callback, this));
-		return this;
+
+	UploadFile.prototype.complete = function(callback) {
+		this.settings.complete = callback;
 	};
 
 	// Helpers
 	// -------------
 	function isString(val) {
 		return Object.prototype.toString.call(val) === '[object String]';
+	}
+
+	function arrayFilter(list, callback) {
+		list = toArray(list);
+		var _list = [];
+		$.each(list, function(i, value) {
+			if (callback(value, i, list)) {
+				_list.push(value);
+			}
+		});
+		return _list;
+	}
+
+	function toArray(list) {
+		return list ? Array.prototype.slice.call(list) : [];
 	}
 
 	function parse(str) {
@@ -305,46 +367,5 @@ var Uploader = (function() {
 		window.console && console.debug('[HTML5Uploader]:' + msg);
 	}
 
-	//接口
-	function MultipleUploader(options) {
-		if (!(this instanceof MultipleUploader)) {
-			return new MultipleUploader(options);
-		}
-		if (isString(options)) {
-			options = {trigger: options};
-		}
-		var $trigger = $(options.trigger);
-		var uploaders = [];
-		$trigger.each(function(i, item) {
-			options.trigger = item;
-			uploaders.push(new Uploader(options));
-		});
-		this._uploaders = uploaders;
-	}
-
-	MultipleUploader.isSupport = function() {
-		return !!window.FormData;
-	};
-	MultipleUploader.debug = debug;
-
-	var methods = [
-		'submit', 'change', 'success', 'error', 'complete', 'progress', 'preprocess',
-		'enable', 'disable', 'abort',
-		'on', 'off', 'once'
-	];
-
-	$.each(methods, function(i, method) {
-		MultipleUploader.prototype[method] = function() {
-			var args = arguments;
-			$.each(this._uploaders, function(i, $item) {
-				$item[method].apply($item, args);
-			});
-			return this;
-		};
-	});
-
-
-	MultipleUploader.Uploader = Uploader;
-	return MultipleUploader;
-
+	return Uploader;
 })();

@@ -25,7 +25,7 @@ $token = $putPolicy->Token(null);
 ?>
 
 <input type="file" name="file" id="file" accept="image/*" />
-<input type="hidden" name="url" id="url" accept="image/*" multiple />
+<input type="hidden" name="url" id="url" accept="image/*" />
 
 <div id="progress">进度：<span></span></div>
 <div id="img"></div>
@@ -33,11 +33,13 @@ $token = $putPolicy->Token(null);
 	var uploader = new Uploader({
 		trigger: '#file',
 		action: 'http://up.qiniu.com',
+		multiple: true,
 		data: {
 			token: '<?= $token; ?>'
 		},
 		preprocess: function(files, complete) {
 			Uploader.makeThumb(files[0], {
+				width: 640,
 				success: function(file) {
 					complete([file]);
 				},
