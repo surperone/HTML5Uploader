@@ -95,6 +95,7 @@ var Uploader = (function() {
 			});
 			uploadFile.preprocess($.proxy(settings.preprocess, that));
 			uploadFile.success($.proxy(settings.success, that));
+			uploadFile.progress($.proxy(settings.progress, that));
 			uploadFile.error($.proxy(settings.error, that));
 			uploadFile.complete($.proxy(that._nextUpload, that));
 			that.queue.push(uploadFile);
@@ -310,7 +311,9 @@ var Uploader = (function() {
 	UploadFile.prototype.success = function(callback) {
 		this.settings.success = callback;
 	};
-
+	Uploader.prototype.progress = function(callback) {
+		this.settings.progress = callback;
+	};
 	UploadFile.prototype.error = function(callback) {
 		this.settings.error = callback;
 	};
