@@ -126,7 +126,7 @@ var Uploader = (function() {
 	};
 	Uploader.prototype.queueCount = function() {
 		var queue = arrayFilter(this.queue, function(upload) {
-			return !upload.state;
+			return !upload.active;
 		});
 		return queue.length;
 	};
