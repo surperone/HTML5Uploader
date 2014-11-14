@@ -1117,7 +1117,7 @@ Uploader.makeThumb = (function() {
 		          null;
 		Uploader.debug('微信环境下，小米系统的手机生成的缩略图上传存在问题');
 		var ua = navigator.userAgent.toLowerCase();
-		var nosupport = ua.search(/hm\d+/) != -1;
+		var nosupport = ua.search(/hm\d+/) != -1 && typeof WeixinJSBridge != 'undefined';
 		return !!window.FileReader && !!URL && !!window.Blob && window.Uint8Array && window.ArrayBuffer && !nosupport;
 	};
 
