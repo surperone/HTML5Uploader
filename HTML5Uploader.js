@@ -112,11 +112,11 @@ var Uploader = (function() {
 	Uploader.prototype._nextUpload = function() {
 		if (this.queueCount() == 0) {
 			debug('全部文件上传完毕');
-			this.queue = [];
-			this.getTrigger().val('');
 			if (this.settings.complete) {
 				this.settings.complete.call(this);
 			}
+			this.queue = [];
+			this.getTrigger().val('');
 		}
 		else {
 			var next = this.queueTotal() - this.queueCount();
