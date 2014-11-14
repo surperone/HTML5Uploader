@@ -46,7 +46,7 @@ var Uploader = (function() {
 		this.setup();
 	}
 
-	Uploader._debug = true;
+	Uploader._debug = false;
 
 	Uploader.isSupport = function() {
 		return !!window.FormData;
