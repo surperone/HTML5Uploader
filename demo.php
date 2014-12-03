@@ -37,17 +37,6 @@ $token = $putPolicy->Token(null);
 		data: {
 			token: '<?= $token; ?>'
 		},
-		preprocess: function(files, complete) {
-			Uploader.makeThumb(files[0], {
-				width: 640,
-				success: function(file) {
-					complete([file]);
-				},
-				error: function() {
-					complete(files);
-				}
-			});
-		},
 		progress: function(e, rate) {
 			$('#progress span').text(rate+'%');
 		},

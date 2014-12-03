@@ -93,7 +93,7 @@ var Uploader = (function() {
 				name: settings.name,
 				action: settings.action
 			});
-			uploadFile.preprocess($.proxy(settings.preprocess || function() {}, that));
+			uploadFile.preprocess($.proxy(settings.preprocess || function(files, complete) {complete(files);}, that));
 			uploadFile.success($.proxy(settings.success || function() {}, that));
 			uploadFile.progress($.proxy(settings.progress || function() {}, that));
 			uploadFile.error($.proxy(settings.error || function() {}, that));
